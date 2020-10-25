@@ -6,7 +6,7 @@ import (
 
 type App struct {
 	view  *tview.Application
-	views Views
+	views *Views
 }
 
 func New() *App {
@@ -14,7 +14,7 @@ func New() *App {
 
 	return &App{
 		view:  app,
-		views: initViews(app),
+		views: newViews(app),
 	}
 }
 
@@ -24,18 +24,6 @@ func (a *App) Run() error {
 	return a.view.Run()
 }
 
-func (a *App) Container() *tview.Flex {
-	return a.views[ContainerView].(*tview.Flex)
-}
-
-func (a *App) Logs() *tview.TextView {
-	return a.views[LogsView].(*tview.TextView)
-}
-
-func (a *App) Search() *tview.InputField {
-	return a.views[SearchView].(*tview.InputField)
-}
-
-func (a *App) TopContainer() *tview.Flex {
-	return a.views[TopContainerView].(*tview.Flex)
+func (a *App) Views() *Views {
+	return a.views
 }

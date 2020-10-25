@@ -5,36 +5,45 @@ import (
 )
 
 func (a *App) initHandlers() {
-	logs := a.Logs()
-	search := a.Search()
-
-	logs.SetChangedFunc(func() {
+	a.views.Logs.SetChangedFunc(func() {
 		a.view.Draw()
 	})
 
-	logs.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	a.views.Logs.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEnter:
-			a.showSearch()
-			a.view.SetFocus(search)
+			a.views.ShowSearch()
+			a.view.SetFocus(a.views.Search)
 		}
 
 		switch event.Rune() {
 		case '?':
-			_, _ = logs.Write([]byte("Caught ????\n"))
+			a.views.ShowHelp()
+			a.view.SetFocus(a.views.Help)
 		}
 
 		return event
 	})
 
-	search.SetDoneFunc(func(key tcell.Key) {
-		switch key {
-		case tcell.KeyEnter:
-			a.hideSearch()
-			logs.ScrollToEnd()
-			a.view.SetFocus(logs)
+	a.views.Help.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyEsc:
+			a.views.HideHelp()
+			a.views.Logs.ScrollToEnd()
+			a.view.SetFocus(a.views.Logs)
 		}
 
-		_, _ = logs.Write([]byte(">>> " + search.GetText() + "\n"))
+		return event
+	})
+
+	a.views.Search.SetDoneFunc(func(key tcell.Key) {
+		switch key {
+		case tcell.KeyEnter:
+			a.views.HideSearch()
+			a.views.Logs.ScrollToEnd()
+			a.view.SetFocus(a.views.Logs)
+		}
+
+		_, _ = a.views.Logs.Write([]byte(">>> " + a.views.Search.GetText() + "\n")) // todo
 	})
 }

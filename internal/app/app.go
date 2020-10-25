@@ -40,7 +40,7 @@ func (a *App) Run() error {
 
 	go func() {
 		errs <- func() error {
-			logsBlock := a.ui.Logs()
+			logsBlock := a.ui.Views().Logs
 
 			for {
 				line, err := a.input.ReadBytes('\n')
