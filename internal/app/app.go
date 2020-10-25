@@ -4,12 +4,10 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/derailed/tview"
-	"github.com/gdamore/tcell"
 	"github.com/pkg/errors"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/cheshir/streamed-logs-viewer/internal/input"
+	"github.com/cheshir/streamed-logs-viewer/internal/ui"
 )
 
 type Config struct {
@@ -19,6 +17,7 @@ type Config struct {
 type App struct {
 	buffer *messageBuffer
 	input  *bufio.Reader
+	ui     *ui.App
 }
 
 func New(config Config) (*App, error) {
@@ -30,60 +29,45 @@ func New(config Config) (*App, error) {
 	app := &App{
 		buffer: newMessageBuffer(config.NumberOfBufferedMessages),
 		input:  in,
+		ui:     ui.New(),
 	}
 
 	return app, nil
 }
 
 func (a *App) Run() error {
-	ui := tview.NewApplication()
-	textView := tview.NewTextView().
-		SetDynamicColors(true).
-		SetChangedFunc(func() {
-			ui.Draw()
-		})
+	errs := make(chan error, 1)
 
-	textView.SetDoneFunc(func(key tcell.Key) {
-		switch key {
-		case tcell.KeyEnter:
-			_, _ = textView.Write([]byte("<Enter> pressed\n"))
-		case tcell.KeyTAB:
-			_, _ = textView.Write([]byte("<Tab> pressed\n"))
-		}
-	})
+	go func() {
+		errs <- func() error {
+			logsBlock := a.ui.Logs()
 
-	textView.SetBorder(true)
+			for {
+				line, err := a.input.ReadBytes('\n')
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
 
-	errs := errgroup.Group{}
-	errs.Go(func() error {
-		for {
-			line, err := a.input.ReadBytes('\n')
-			if err != nil {
-				if err == io.EOF {
-					break
+					return errors.Wrap(err, "read input error")
 				}
 
-				return errors.Wrap(err, "read input error")
-			}
+				if _, err := logsBlock.Write(line); err != nil {
+					if err == io.EOF {
+						break
+					}
 
-			if _, err := textView.Write(line); err != nil {
-				if err == io.EOF {
-					break
+					return errors.Wrap(err, "write text error")
 				}
-
-				return errors.Wrap(err, "write text error")
 			}
-		}
 
-		return nil
-	})
+			return nil
+		}()
+	}()
 
-	errs.Go(func() error {
-		return ui.
-			SetRoot(textView, true).
-			SetFocus(textView).
-			Run()
-	})
+	go func() {
+		errs <- a.ui.Run()
+	}()
 
-	return errs.Wait()
+	return <-errs
 }

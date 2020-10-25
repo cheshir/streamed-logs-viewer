@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 
 	"github.com/cheshir/streamed-logs-viewer/internal/app"
@@ -34,18 +33,20 @@ func main() {
 			})
 
 			if err != nil {
-				return errors.Wrap(err, "failed to init app")
+				logger.Error("Failed to init application:", err)
+				return nil
 			}
 
-			return a.Run()
+			if err := a.Run(); err != nil {
+				logger.Error("Application error:", err)
+			}
+
+			return nil
 		},
 	}
 
 	err = app.Run(os.Args)
 	if err != nil {
 		logger.Error("App crashed", err)
-		fmt.Println("Application crashed:", err.Error())
-
-		return
 	}
 }
