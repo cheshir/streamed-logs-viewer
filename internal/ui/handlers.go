@@ -13,13 +13,11 @@ func (a *App) initHandlers() {
 		switch event.Key() {
 		case tcell.KeyEnter:
 			a.views.ShowSearch()
-			a.view.SetFocus(a.views.Search)
 		}
 
 		switch event.Rune() {
 		case '?':
 			a.views.ShowHelp()
-			a.view.SetFocus(a.views.Help)
 		}
 
 		return event
@@ -29,8 +27,6 @@ func (a *App) initHandlers() {
 		switch event.Key() {
 		case tcell.KeyEsc:
 			a.views.HideHelp()
-			a.views.Logs.ScrollToEnd()
-			a.view.SetFocus(a.views.Logs)
 		}
 
 		return event
@@ -40,8 +36,6 @@ func (a *App) initHandlers() {
 		switch key {
 		case tcell.KeyEnter:
 			a.views.HideSearch()
-			a.views.Logs.ScrollToEnd()
-			a.view.SetFocus(a.views.Logs)
 		}
 
 		_, _ = a.views.Logs.Write([]byte(">>> " + a.views.Search.GetText() + "\n")) // todo
