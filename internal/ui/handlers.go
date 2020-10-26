@@ -10,13 +10,10 @@ func (a *App) initHandlers() {
 	})
 
 	a.views.Logs.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyEnter:
-			a.views.ShowSearch()
-		}
-
 		switch event.Rune() {
-		case '?':
+		case rune(KeySlash):
+			a.views.ShowSearch()
+		case rune(KeyQuestionMark):
 			a.views.ShowHelp()
 		}
 
@@ -25,7 +22,7 @@ func (a *App) initHandlers() {
 
 	a.views.Help.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
-		case tcell.KeyEsc:
+		case tcell.Key(KeyEsq):
 			a.views.HideHelp()
 		}
 
@@ -34,7 +31,7 @@ func (a *App) initHandlers() {
 
 	a.views.Search.SetDoneFunc(func(key tcell.Key) {
 		switch key {
-		case tcell.KeyEnter:
+		case tcell.Key(KeyEnter):
 			a.views.HideSearch()
 		}
 
