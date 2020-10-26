@@ -24,6 +24,8 @@ func (a *App) Run() error {
 	return a.view.Run()
 }
 
-func (a *App) Views() *Views {
-	return a.views
+func (a *App) Output() *Output {
+	return &Output{
+		view: a.views.Logs,
+	}
 }

@@ -40,7 +40,7 @@ func (a *App) Run() error {
 
 	go func() {
 		errs <- func() error {
-			logsBlock := a.ui.Views().Logs
+			out := a.ui.Output()
 
 			for {
 				line, err := a.input.ReadBytes('\n')
@@ -52,7 +52,7 @@ func (a *App) Run() error {
 					return errors.Wrap(err, "read input error")
 				}
 
-				if _, err := logsBlock.Write(line); err != nil {
+				if _, err := out.Write(line); err != nil {
 					if err == io.EOF {
 						break
 					}
